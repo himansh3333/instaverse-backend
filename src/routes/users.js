@@ -4,7 +4,41 @@ const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-// Get user profile
+// Get logged-in user's profile
+router.get("/me", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT 
+        u.id,
+        u.username,
+        u.email,
+        u.bio,
+        u.avatar_url,
+        u.created_at,
+        (SELECT COUNT(*) FROM posts p WHERE p.user_id = u.id)::int AS post_count,
+        (SELECT COUNT(*) FROM follows f WHERE f.following_id = u.id)::int AS follower_count,
+        (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id)::int AS following_count
+       FROM users u
+       WHERE u.id = $1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Unable to load user"
+    });
+  }
+});
+
+// Get any user's profile
 router.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(
