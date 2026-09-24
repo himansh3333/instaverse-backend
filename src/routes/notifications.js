@@ -24,7 +24,26 @@ router.get("/", auth, async (req, res) => {
       [req.user.id]
     );
 
-    res.json(result.rows);
+   const unreadResult = await pool.query(
+  `SELECT COUNT(*)::int AS count
+   FROM notifications
+   WHERE user_id = $1 AND is_read = FALSE`,
+  [req.user.id]
+);
+
+res.json({
+  notifications: result.rows.map((n) => ({
+    id: n.id,
+    type: n.type,
+    post_id: n.post_id,
+    is_read: n.is_read,
+    created_at: n.created_at,
+    actor_id: n.actor_id,
+    actor: n.actor_username,
+    actor_avatar: n.actor_avatar
+  })),
+  unread: unreadResult.rows[0].count
+});
   } catch (error) {
     console.error(error);
     res.status(500).json({
