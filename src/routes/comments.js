@@ -23,7 +23,9 @@ router.get("/posts/:postId/comments", async (req, res) => {
       [req.params.postId]
     );
 
-    res.json(result.rows);
+    res.json({
+      comments: result.rows
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -50,7 +52,9 @@ router.post("/posts/:postId/comments", auth, async (req, res) => {
       [req.params.postId, req.user.id, content.trim()]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({
+      comment: result.rows[0]
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
