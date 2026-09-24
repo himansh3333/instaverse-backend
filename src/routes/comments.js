@@ -63,4 +63,37 @@ router.post("/posts/:postId/comments", auth, async (req, res) => {
   }
 });
 
+// Delete own comment
+router.delete("/posts/:postId/comments/:commentId", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM comments
+       WHERE id = $1
+       AND post_id = $2
+       AND user_id = $3
+       RETURNING id`,
+      [
+        req.params.commentId,
+        req.params.postId,
+        req.user.id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Comment not found or you are not allowed to delete it"
+      });
+    }
+
+    res.json({
+      message: "Comment deleted successfully"
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Comment deletion failed"
+    });
+  }
+});
+
 module.exports = router;
