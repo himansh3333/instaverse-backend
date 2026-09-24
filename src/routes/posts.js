@@ -17,7 +17,9 @@ router.get("/", async (req, res) => {
       ORDER BY posts.created_at DESC
     `);
 
-    res.json(result.rows);
+    res.json({
+  posts: result.rows
+});
   } catch (error) {
     console.error(error);
     res.status(500).json({
